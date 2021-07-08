@@ -41,21 +41,24 @@ dirs = []
 def ReworkList(list):
     tmp = []
     for row in list:
-        if (row == '-') or (row == '(-)'):
-            row = '0'
-        if (row[0] == '('):
-            row = '-' + row[1:len(row) - 1]
-        tmp.append(int(row.replace(' ', '')))
+        if (row[1] == '-') or (row[1] == '(-)'):
+            row[1] = '0'
+        if (row[1][0] == '('):
+            row[1] = '-' + row[1][1:len(row[1]) - 1]
+        tmp.append([row[0], int(row[1].replace(' ', ''))])
 
-    result = [tmp[0], tmp[1], tmp[3] + tmp[4], tmp[8], tmp[9] + tmp[10],
-              (-1) * ((tmp[0] + tmp[1] + tmp[3] + tmp[4] + tmp[8] + tmp[9] + tmp[10]) + tmp[12] - tmp[16]),
-              tmp[12], tmp[16]]
-    return result
+    # result = [tmp[0], tmp[1], tmp[3] + tmp[4], tmp[8], tmp[9] + tmp[10],
+    #           (-1) * ((tmp[0] + tmp[1] + tmp[3] + tmp[4] + tmp[8] + tmp[9] + tmp[10]) + tmp[12] - tmp[16]),
+    #           tmp[12], tmp[16]]
+    return tmp
 
-def CalcPart(list):
+def CalcPart(list, flag):
     tmp = []
-    for i in range(0, 8):
-        tmp.append(round(list[i] / list[0], 3))
+    for row in list:
+        if (flag == 1):
+            tmp.append(round(row / list[0], 3))
+        else:
+            tmp.append(round(row[1] / list[0][1], 3))
     return tmp
 
 def on_click():
@@ -70,8 +73,8 @@ def on_click():
     org = Organization.Organization(INN)
     data2019 = ReworkList(org.Get2019DataFromExcel())
     data2020 = ReworkList(org.Get2020DataFromExcel())
-    part2019 = CalcPart(data2019)
-    part2020 = CalcPart(data2020)
+    part2019 = CalcPart(data2019, 0)
+    part2020 = CalcPart(data2020, 0)
     balance2019 = org.GetBalance2019()
     balance2020 = org.GetBalance2020()
     StartBalance(balance2019, 2019)
@@ -89,11 +92,11 @@ def on_click():
     #ui.table2020.setVerticalHeaderLabels(dict_rownames)
     ui.table2020.setHorizontalHeaderLabels(dict_columnnames)
     for i in range(0, len(data2019)):
-        ui.table2019.setItem(i, 0, QtWidgets.QTableWidgetItem(str(dict_analysis[i])))
-        ui.table2019.setItem(i, 1, QtWidgets.QTableWidgetItem(str(data2019[i])))
+        ui.table2019.setItem(i, 0, QtWidgets.QTableWidgetItem(str(data2019[i][0])))
+        ui.table2019.setItem(i, 1, QtWidgets.QTableWidgetItem(str(data2019[i][1])))
         ui.table2019.setItem(i, 2, QtWidgets.QTableWidgetItem(str(round(part2019[i] * 100, 1)) + '%'))
-        ui.table2020.setItem(i, 0, QtWidgets.QTableWidgetItem(str(dict_analysis[i])))
-        ui.table2020.setItem(i, 1, QtWidgets.QTableWidgetItem(str(data2020[i])))
+        ui.table2020.setItem(i, 0, QtWidgets.QTableWidgetItem(str(data2020[i][0])))
+        ui.table2020.setItem(i, 1, QtWidgets.QTableWidgetItem(str(data2020[i][1])))
         ui.table2020.setItem(i, 2, QtWidgets.QTableWidgetItem(str(round(part2020[i] * 100, 1)) + '%'))
     ui.table2019.resizeColumnsToContents()
     ui.table2019.resizeRowsToContents()
@@ -175,32 +178,29 @@ def linProg():
     ui.labelIndexValue.setText(str(round(b, 2)))
 
 def CalcResultTable():
-    ui.tableResult.setRowCount(8)
+    ui.tableResult.setRowCount(len(data2019))
     ui.tableResult.setColumnCount(3)
     ui.tableResult.setHorizontalHeaderLabels(dict_columnnames)
     kTableValues.clear()
     tmp = []
-    for i in range(0, 8):
+    for i in range(0, len(data2019)):
         if (ui.table_k.item(i, 0) == None):
             kTableValues.append(0)
         else:
             kTableValues.append(ui.table_k.item(i, 0).text())
     if (ui.radioButton1.isChecked()):
-        for i in range(0, 8):
+        for i in range(0, len(data2019)):
            tmp.append(round(int(ui.table2019.item(i, 1).text()) * (100 + float(kTableValues[i])) / 100, 0))
     if (ui.radioButton2.isChecked()):
-        for i in range(0, 8):
+        for i in range(0, len(data2020)):
            tmp.append(round(int(ui.table2020.item(i, 1).text()) * (100 + float(kTableValues[i])) / 100, 0))
     tmp.append(sum(tmp) - tmp[7])
-    part = CalcPart(tmp)
-    for i in range(0, 8):
-        ui.tableResult.setItem(i, 0, QtWidgets.QTableWidgetItem(str(dict_analysis[i])))
+    part = CalcPart(tmp, 1)
+    for i in range(0, len(data2019)):
+        ui.tableResult.setItem(i, 0, QtWidgets.QTableWidgetItem(str(data2019[i][0])))
         ui.tableResult.setItem(i, 1, QtWidgets.QTableWidgetItem(str(tmp[i])))
         ui.tableResult.setItem(i, 2, QtWidgets.QTableWidgetItem(str(round(part[i] * 100, 1)) + '%'))
 
-    ui.tableResult.setItem(7, 0, QtWidgets.QTableWidgetItem(str(dict_analysis[7])))
-    ui.tableResult.setItem(7, 1, QtWidgets.QTableWidgetItem(str(tmp[8])))
-    ui.tableResult.setItem(7, 2, QtWidgets.QTableWidgetItem(str(round(tmp[8] / tmp[0] * 100, 1)) + '%'))
 
     ui.labelResult.setVisible(True)
     ui.tableResult.resizeColumnsToContents()
@@ -209,26 +209,26 @@ def CalcResultTable():
 
 def StartBalance(balance, year):
     df = pd.DataFrame(data = balance)
+    ui.balancetable2019.setRowCount(len(balance))
+    ui.balancetable2020.setRowCount(len(balance))
     if (year == 2019):
         ui.balancetable2019.setColumnCount(2)
         for i, row in df.iterrows():
-            ui.balancetable2019.setRowCount(ui.balancetable2019.rowCount() + 1)
-
             for j in range(ui.balancetable2019.columnCount()):
                 ui.balancetable2019.setItem(i, j, QtWidgets.QTableWidgetItem(str(row[j])))
             ui.balancetable2019.resizeColumnsToContents()
             ui.balancetable2019.resizeRowsToContents()
             ui.balancetable2019.verticalHeader().hide()
+            ui.balancetable2019.horizontalHeader().hide()
     else:
         ui.balancetable2020.setColumnCount(2)
         for i, row in df.iterrows():
-            ui.balancetable2020.setRowCount(ui.balancetable2020.rowCount() + 1)
-
             for j in range(ui.balancetable2020.columnCount()):
                 ui.balancetable2020.setItem(i, j, QtWidgets.QTableWidgetItem(str(row[j])))
             ui.balancetable2020.resizeColumnsToContents()
             ui.balancetable2020.resizeRowsToContents()
             ui.balancetable2020.verticalHeader().hide()
+            ui.balancetable2020.horizontalHeader().hide()
 
 def GetCompanyList():
     global dirs

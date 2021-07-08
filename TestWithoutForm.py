@@ -32,16 +32,16 @@ def WorkWithExcelOpenpyxl(org):
 def ReworkList(list):
     tmp = []
     for row in list:
-        if (row == '-') or (row == '(-)'):
-            row = '0'
-        if (row[0] == '('):
-            row = '-' + row[1:len(row) - 1]
-        tmp.append(int(row.replace(' ', '')))
+        if (row[1] == '-') or (row[1] == '(-)'):
+            row[1] = '0'
+        if (row[1][0] == '('):
+            row[1] = '-' + row[1][1:len(row[1]) - 1]
+        tmp.append([row[0], int(row[1].replace(' ', ''))])
 
-    result = [tmp[0], tmp[1], tmp[3] + tmp[4], tmp[8], tmp[9] + tmp[10],
-              (-1) * ((tmp[0] + tmp[1] + tmp[3] + tmp[4] + tmp[8] + tmp[9] + tmp[10]) + tmp[12] - tmp[16]),
-              tmp[12], tmp[16]]
-    return result
+    # result = [tmp[0], tmp[1], tmp[3] + tmp[4], tmp[8], tmp[9] + tmp[10],
+    #           (-1) * ((tmp[0] + tmp[1] + tmp[3] + tmp[4] + tmp[8] + tmp[9] + tmp[10]) + tmp[12] - tmp[16]),
+    #           tmp[12], tmp[16]]
+    return tmp
 
 dict_analysis = ['Выручка', 'Себестоимость проданных товаров', 'Административные и коммерческие расходы', 'Сальдо процентов по кредиту',
                  'Прочие доходы-расходы', 'Прочее (другие доходы-расходы)', 'Налог на прибыль', 'Чистая прибыль']
@@ -49,12 +49,13 @@ dict_analysis = ['Выручка', 'Себестоимость проданны�
 
 def CalcPart(list):
     tmp = []
-    for i in range(0, 8):
-        tmp.append(round(list[i] / list[0], 3))
+    for row in list:
+        tmp.append(round(row[1] / list[0][1], 3))
     return tmp
 
 # org1 = Organization.Organization('6432009756')
 # org1 = Organization.Organization('2310031475')
+org1 = Organization.Organization('6449008704')
 # org1.GetNameAndAddress()
 # balance1 = org1.GetBalance2019()
 # balance2 = org1.GetBalance2020()
@@ -64,22 +65,22 @@ def CalcPart(list):
 # print(len(balance2))
 # for row in balance2:
 #     print(row)
-# data2019 = org1.Get2019DataFromExcel()
-# data2020 = org1.Get2020DataFromExcel()
-# data2020 = ReworkList(data2020)
-# data2019 = ReworkList(data2019)
-# print(data2019)
-# print(data2020)
+data2019 = org1.Get2019DataFromExcel()
+data2020 = org1.Get2020DataFromExcel()
+data2020 = ReworkList(data2020)
+data2019 = ReworkList(data2019)
+print(data2019)
+print(data2020)
 #
-# part2019 = CalcPart(data2019)
-# part2020 = CalcPart(data2020)
-# print(part2019)
-# print(part2020)
+part2019 = CalcPart(data2019)
+part2020 = CalcPart(data2020)
+print(part2019)
+print(part2020)
 
-example_dir = os.path.abspath(os.curdir)
-content = os.listdir(example_dir)
-dirs = []
-for file in content:
-    if os.path.isdir(os.path.join(example_dir, file)) and file.isnumeric():
-        dirs.append(file)
+# example_dir = os.path.abspath(os.curdir)
+# content = os.listdir(example_dir)
+# dirs = []
+# for file in content:
+#     if os.path.isdir(os.path.join(example_dir, file)) and file.isnumeric():
+#         dirs.append(file)
 
