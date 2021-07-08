@@ -3,13 +3,16 @@ from PyQt5 import Qt
 import sys
 import Organization
 import pulp
+import pandas as pd
+import os
 
 app = QtWidgets.QApplication(sys.argv)
 app.setStyle("Fusion")
 MainWindow = QtWidgets.QMainWindow()
 ui = Ui_MainWindow()
 ui.setupUi(MainWindow)
-MainWindow.show()
+MainWindow.showMaximized()
+
 
 dict_rownames = ['Выручка', 'Себестоимость продаж', 'Валовая прибыль (убыток)', 'Коммерческие расходы',
                   'Управленческие расходы', 'Прибыль (убыток) от продаж', 'Доходы от участия\nв других организациях',
@@ -30,6 +33,10 @@ data2019 = []
 data2020 = []
 part2019 = []
 part2020 = []
+balance2019 = []
+balance2020 = []
+dirs = []
+
 
 def ReworkList(list):
     tmp = []
@@ -52,17 +59,23 @@ def CalcPart(list):
     return tmp
 
 def on_click():
-    global part2019, part2020, data2019, data2020
+    global part2019, part2020, data2019, data2020, balance2019, balance2020
     part2019.clear()
     part2020.clear()
     data2019.clear()
     part2020.clear()
+    balance2019.clear()
+    balance2020.clear()
     INN = ui.lineEdit.text()
     org = Organization.Organization(INN)
     data2019 = ReworkList(org.Get2019DataFromExcel())
     data2020 = ReworkList(org.Get2020DataFromExcel())
     part2019 = CalcPart(data2019)
     part2020 = CalcPart(data2020)
+    balance2019 = org.GetBalance2019()
+    balance2020 = org.GetBalance2020()
+    StartBalance(balance2019, 2019)
+    StartBalance(balance2020, 2020)
     org.GetNameAndAddress()
     ui.table2019.setRowCount(len(data2019))
     ui.table2019.setColumnCount(3)
@@ -101,19 +114,24 @@ def on_click():
     ui.buttonResult.setVisible(True)
     ui.labelZLP.setVisible(True)
     ui.buttonZLP.setVisible(True)
+    ui.balancetable2019.setVisible(True)
+    GetCompanyList()
 
 
 def radiobuttonchek():
     if (ui.radioButton1.isChecked()):
         ui.table2019.setVisible(True)
-        ui.label2019.setVisible(True)
+        ui.label2019.setText("Данные за 2019г")
         ui.table2020.setVisible(False)
-        ui.label2020.setVisible(False)
+        ui.balancetable2019.setVisible(True)
+        ui.balancetable2020.setVisible(False)
     if (ui.radioButton2.isChecked()):
         ui.table2019.setVisible(False)
-        ui.label2019.setVisible(False)
+        ui.label2019.setText("Данные за 2020г")
         ui.table2020.setVisible(True)
-        ui.label2020.setVisible(True)
+        ui.balancetable2019.setVisible(False)
+        ui.balancetable2020.setVisible(True)
+
 
 
 
@@ -189,11 +207,51 @@ def CalcResultTable():
     ui.tableResult.resizeRowsToContents()
     ui.tableResult.setVisible(True)
 
+def StartBalance(balance, year):
+    df = pd.DataFrame(data = balance)
+    if (year == 2019):
+        ui.balancetable2019.setColumnCount(2)
+        for i, row in df.iterrows():
+            ui.balancetable2019.setRowCount(ui.balancetable2019.rowCount() + 1)
+
+            for j in range(ui.balancetable2019.columnCount()):
+                ui.balancetable2019.setItem(i, j, QtWidgets.QTableWidgetItem(str(row[j])))
+            ui.balancetable2019.resizeColumnsToContents()
+            ui.balancetable2019.resizeRowsToContents()
+            ui.balancetable2019.verticalHeader().hide()
+    else:
+        ui.balancetable2020.setColumnCount(2)
+        for i, row in df.iterrows():
+            ui.balancetable2020.setRowCount(ui.balancetable2020.rowCount() + 1)
+
+            for j in range(ui.balancetable2020.columnCount()):
+                ui.balancetable2020.setItem(i, j, QtWidgets.QTableWidgetItem(str(row[j])))
+            ui.balancetable2020.resizeColumnsToContents()
+            ui.balancetable2020.resizeRowsToContents()
+            ui.balancetable2020.verticalHeader().hide()
+
+def GetCompanyList():
+    global dirs
+    example_dir = os.path.abspath(os.curdir)
+    content = os.listdir(example_dir)
+    dirs.clear()
+    ui.comboBox.clear()
+    for file in content:
+        if os.path.isdir(os.path.join(example_dir, file)) and file.isnumeric():
+            dirs.append(file)
+    ui.comboBox.addItems(dirs)
+
+def ComboBoxChanged():
+    ui.lineEdit.setText(ui.comboBox.currentText())
+
+GetCompanyList()
+ui.comboBox.activated[str].connect(ComboBoxChanged)
 ui.radioButton1.toggled.connect(radiobuttonchek)
 ui.radioButton2.toggled.connect(radiobuttonchek)
 ui.BtnDownload.clicked.connect(on_click)
 ui.buttonResult.clicked.connect(CalcResultTable)
 ui.buttonZLP.clicked.connect(linProg)
+
 
 sys.exit(app.exec_())
 

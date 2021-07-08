@@ -7,6 +7,7 @@ import numpy as np
 import csv
 import openpyxl
 import Organization
+import  os
 
 
 def WorkWithExcelPandas(org):
@@ -53,11 +54,16 @@ def CalcPart(list):
     return tmp
 
 # org1 = Organization.Organization('6432009756')
-org1 = Organization.Organization('2310031475')
-org1.GetNameAndAddress()
-balance = org1.GetBalance()
-for row in balance:
-    print(row)
+# org1 = Organization.Organization('2310031475')
+# org1.GetNameAndAddress()
+# balance1 = org1.GetBalance2019()
+# balance2 = org1.GetBalance2020()
+# print(len(balance1))
+# for row in balance1:
+#     print(row)
+# print(len(balance2))
+# for row in balance2:
+#     print(row)
 # data2019 = org1.Get2019DataFromExcel()
 # data2020 = org1.Get2020DataFromExcel()
 # data2020 = ReworkList(data2020)
@@ -70,4 +76,10 @@ for row in balance:
 # print(part2019)
 # print(part2020)
 
+example_dir = os.path.abspath(os.curdir)
+content = os.listdir(example_dir)
+dirs = []
+for file in content:
+    if os.path.isdir(os.path.join(example_dir, file)) and file.isnumeric():
+        dirs.append(file)
 
