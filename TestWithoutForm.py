@@ -32,11 +32,11 @@ def WorkWithExcelOpenpyxl(org):
 def ReworkList(list):
     tmp = []
     for row in list:
-        if (row[1] == '-') or (row[1] == '(-)'):
-            row[1] = '0'
-        if (row[1][0] == '('):
-            row[1] = '-' + row[1][1:len(row[1]) - 1]
-        tmp.append([row[0], int(row[1].replace(' ', ''))])
+        if (row[2] == '-') or (row[2] == '(-)') or (row[2] == '(-)2'):
+            row[2] = '0'
+        if (row[2][0] == '('):
+            row[2] = '-' + row[2][1:len(row[2]) - 1]
+        tmp.append([row[0], row[1], int(row[2].replace(' ', ''))])
 
     # result = [tmp[0], tmp[1], tmp[3] + tmp[4], tmp[8], tmp[9] + tmp[10],
     #           (-1) * ((tmp[0] + tmp[1] + tmp[3] + tmp[4] + tmp[8] + tmp[9] + tmp[10]) + tmp[12] - tmp[16]),
@@ -57,25 +57,31 @@ def CalcPart(list):
 # org1 = Organization.Organization('2310031475')
 org1 = Organization.Organization('6449008704')
 # org1.GetNameAndAddress()
-# balance1 = org1.GetBalance2019()
-# balance2 = org1.GetBalance2020()
-# print(len(balance1))
-# for row in balance1:
+balance1 = org1.GetBalance2019()
+balance1 = ReworkList(balance1)
+balance2 = org1.GetBalance2020()
+balance2 = ReworkList(balance2)
+print(len(balance1))
+for row in balance1:
+    print(row)
+print(len(balance2))
+for row in balance2:
+    print(row)
+# data2019 = org1.Get2019DataFromExcel()
+# data2020 = org1.Get2020DataFromExcel()
+# data2020 = ReworkList(data2020)
+# data2019 = ReworkList(data2019)
+# print(len(data2019))
+# for row in data2019:
 #     print(row)
-# print(len(balance2))
-# for row in balance2:
+# print(len(data2020))
+# for row in data2020:
 #     print(row)
-data2019 = org1.Get2019DataFromExcel()
-data2020 = org1.Get2020DataFromExcel()
-data2020 = ReworkList(data2020)
-data2019 = ReworkList(data2019)
-print(data2019)
-print(data2020)
-#
-part2019 = CalcPart(data2019)
-part2020 = CalcPart(data2020)
-print(part2019)
-print(part2020)
+# #
+# part2019 = CalcPart(data2019)
+# part2020 = CalcPart(data2020)
+# print(part2019)
+# print(part2020)
 
 # example_dir = os.path.abspath(os.curdir)
 # content = os.listdir(example_dir)

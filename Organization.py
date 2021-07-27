@@ -75,12 +75,13 @@ class Organization(object):
             for cell in row:
                 if (cell.value != None):
                     tmp_list.append(cell.value)
-            if (len(tmp_list) == 3):
-                data.append([tmp_list[0], tmp_list[2]])
             if (len(tmp_list) == 4):
-                data.append([tmp_list[0], tmp_list[3]])
+                tmp_list.pop(2)
+                data.append(tmp_list)
             if (len(tmp_list) == 5):
-                data.append([tmp_list[1], tmp_list[4]])
+                tmp_list.pop(0)
+                tmp_list.pop(2)
+                data.append(tmp_list)
             if (len(tmp_list) == 1):
                 break
         self.Data2019 = data
@@ -95,12 +96,10 @@ class Organization(object):
             for cell in row:
                 if (cell.value != None):
                     tmp_list.append(cell.value)
-            if (len(tmp_list) == 3):
-                data.append([tmp_list[0], tmp_list[1]])
             if (len(tmp_list) == 4):
-                data.append([tmp_list[0], tmp_list[2]])
+                data.append(tmp_list[0:3])
             if (len(tmp_list) == 5):
-                data.append([tmp_list[1], tmp_list[3]])
+                data.append(tmp_list[1:4])
             if (len(tmp_list) == 1):
                 break
         self.Data2020 = data
@@ -110,18 +109,18 @@ class Organization(object):
         wb = openpyxl.load_workbook(self.INN + "/" + self.excel_filename)
         sheet = wb['Balance']
         data = []
-        for row in sheet['A3':'BA80']:
+        for row in sheet['A7':'BA80']:
             tmp_list = []
             for cell in row:
                 if (cell.value != None):
                     tmp_list.append(cell.value)
             if (len(tmp_list) == 5):
                 tmp_list = tmp_list[0:4]
-                tmp_list.pop(1)
-                tmp_list.pop(1)
+                tmp_list.pop(2)
                 data.append(tmp_list)
-            elif (len(tmp_list) == 4):
-                tmp_list.pop(1)
+            elif (len(tmp_list) == 6):
+                tmp_list.pop(0)
+                tmp_list.pop(2)
                 tmp_list = tmp_list[0:3]
                 data.append(tmp_list)
         self.Balance2019 = data
@@ -131,17 +130,17 @@ class Organization(object):
         wb = openpyxl.load_workbook(self.INN + "/" + self.excel_filename)
         sheet = wb['Balance']
         data = []
-        for row in sheet['A3':'BA80']:
+        for row in sheet['A7':'BA80']:
             tmp_list = []
             for cell in row:
                 if (cell.value != None):
                     tmp_list.append(cell.value)
             if (len(tmp_list) == 5):
                 tmp_list = tmp_list[0:3]
-                tmp_list.pop(1)
                 data.append(tmp_list)
-            elif (len(tmp_list) == 4):
-                tmp_list = tmp_list[0:2]
+            elif (len(tmp_list) == 6):
+                tmp_list.pop(0)
+                tmp_list = tmp_list[0:3]
                 data.append(tmp_list)
         self.Balance2020 = data
         return data
